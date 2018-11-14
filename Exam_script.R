@@ -179,11 +179,27 @@ data.combined_full$SalePrice[is.na(data.combined$SalePrice)] <- "None"
 library(randomForest)
 set.seed(2018)
 data.combined_full$SalePrice <- as.factor(data.combined_full$SalePrice)
-randomForest(y = data.combined_full$SalePrice[1:1460,], 
+RFModel <- randomForest(y = data.combined_full$SalePrice[1:1460,], 
              x = data.combined_full[1:1460,]
              [,c("OverallQual","YearBuilt","ExterCond","KitchenAbvGr",
              "GarageCars","PoolQC","Fence","BedroomAbvGr","SaleCondition")],ntree=500)
 
+PreComp_rf <- predict(RFModel, Data.combined_full_set[1461:2919,])
+
+Test_set$Pred.rf <- PreComp_rf
+PreComp_RF <- Test_set$Pred.rf
+Compl_testRF <- Test_set$Cible
+(M_RF_test <- as.matrix(table(Compl_testRF, PreComp_RF)))
+
+perf(Test_set$Cible, Test_set$Pred.rf)
+
+set.seed(2018)
+quick_RF <- randomForest(x=all[1:1460,-79], y=all$SalePrice[1:1460], ntree=100,importance=TRUE)
+imp_RF <- importance(quick_RF)
+imp_DF <- data.frame(Variables = row.names(imp_RF), MSE = imp_RF[,1])
+imp_DF <- imp_DF[order(imp_DF$MSE, decreasing = TRUE),]
+
+ggplot(imp_DF[1:20,], aes(x=reorder(Variables, MSE), y=MSE, fill=MSE)) + geom_bar(stat = 'identity') + labs(x = 'Variables', y= '% increase MSE if variable is randomly permuted') + coord_flip() + theme(legend.position="none")
 
 # Second Model: Gradient Boosting
 
