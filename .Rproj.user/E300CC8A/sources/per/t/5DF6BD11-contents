@@ -187,9 +187,9 @@ RFModel <- randomForest(formula = SalePrice ~ OverallQual+YearBuilt+ExterCond+Ki
 
 Prediction <- predict(RFModel, data.combined_full[1461:2919,])
 
-Test_set$Pred.rf <- Prediction
-PreComp_RF <- Test_set$Pred.rf
-Compl_testRF <- Test_set$Cible
+Prediction2 <- Prediction
+PreComp_RF <- Prediction2
+Compl_testRF <- data.combined_full$SalePrice[1461:2919,]
 (M_RF_test <- as.matrix(table(Compl_testRF, PreComp_RF)))
 
 perf(Test_set$Cible, Test_set$Pred.rf)
