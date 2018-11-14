@@ -12,6 +12,9 @@ library(pROC)
 library(ggcorrplot)
 library(reshape)
 library(scales)
+library(xgboost)
+library(gbm)
+library(randomForest)
 
 # Load the train and test dataset
 train <- read.csv("train.csv", header=TRUE, stringsAsFactors = FALSE)
@@ -66,7 +69,6 @@ Missingdata_barplot
 nacolumn <- which(colSums(is.na(data.combined)) > 0)
 sort(colSums(sapply(data.combined[nacolumn], is.na)), decreasing = TRUE)
 names(nacolumn)
-
 # 34 variables with NAs, NAs in SalePrice is from the test set.
 # Imputing missing values
 # Only Fence variable and PoolQC are needed for our Work
@@ -176,32 +178,35 @@ data.combined_full$SalePrice[is.na(data.combined$SalePrice)] <- "None"
 
 # ====================================Exploratory modeling==============================================
 # Fisrt Model: Random Forest
-library(randomForest)
 set.seed(2018)
 data.combined_full$SalePrice <- as.factor(data.combined_full$SalePrice)
-RFModel <- randomForest(y = data.combined_full$SalePrice[1:1460,], 
-             x = data.combined_full[1:1460,]
-             [,c("OverallQual","YearBuilt","ExterCond","KitchenAbvGr",
-             "GarageCars","PoolQC","Fence","BedroomAbvGr","SaleCondition")],ntree=500)
+RFModel <- randomForest(formula = SalePrice ~ OverallQual+YearBuilt+ExterCond+KitchenAbvGr+
+                          GarageCars+PoolQC+Fence+BedroomAbvGr+SaleCondition, 
+             data = data.combined_full[0:1461,],
+             ntree=500)
 
-PreComp_rf <- predict(RFModel, Data.combined_full_set[1461:2919,])
+Prediction <- predict(RFModel, data.combined_full[1461:2919,])
 
-Test_set$Pred.rf <- PreComp_rf
+Test_set$Pred.rf <- Prediction
 PreComp_RF <- Test_set$Pred.rf
 Compl_testRF <- Test_set$Cible
 (M_RF_test <- as.matrix(table(Compl_testRF, PreComp_RF)))
 
 perf(Test_set$Cible, Test_set$Pred.rf)
 
-set.seed(2018)
-quick_RF <- randomForest(x=all[1:1460,-79], y=all$SalePrice[1:1460], ntree=100,importance=TRUE)
-imp_RF <- importance(quick_RF)
-imp_DF <- data.frame(Variables = row.names(imp_RF), MSE = imp_RF[,1])
-imp_DF <- imp_DF[order(imp_DF$MSE, decreasing = TRUE),]
-
-ggplot(imp_DF[1:20,], aes(x=reorder(Variables, MSE), y=MSE, fill=MSE)) + geom_bar(stat = 'identity') + labs(x = 'Variables', y= '% increase MSE if variable is randomly permuted') + coord_flip() + theme(legend.position="none")
-
 # Second Model: Gradient Boosting
+gbm.fit <- gbm(
+  formula = SalePrice ~ OverallQual+YearBuilt+ExterCond+KitchenAbvGr+
+             GarageCars+PoolQC+Fence+BedroomAbvGr+SaleCondition,
+  distribution = "gaussian",
+  data = data.combined_full[1:1460,],
+  n.trees = 10000,
+  interaction.depth = 1,
+  shrinkage = 0.001,
+  cv.folds = 5,
+  n.cores = NULL, # will use all cores by default
+  verbose = FALSE
+) 
 
 
 
