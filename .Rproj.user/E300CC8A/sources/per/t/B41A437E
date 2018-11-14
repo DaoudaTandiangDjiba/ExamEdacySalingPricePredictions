@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1542194813134.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3473391773",
+    "id" : "B41A437E",
+    "lastKnownWriteTime" : 1540819440,
+    "last_content_update" : 1540819440,
+    "path" : "~/Desktop/DATASCIENCEPROJECT/R for Data science_courses/Douanes.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "67,58",
+        "scrollLine" : "57"
+    },
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

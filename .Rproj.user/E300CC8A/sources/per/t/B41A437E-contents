@@ -1,0 +1,297 @@
+###########   define environnement of work                                                            
+
+setwd("/Users/diao028606/Documents/Cours data science")
+
+########## Load necessary libraries 
+
+library("stringr")
+library("lubridate")
+
+###########   Importation of compliant data set 
+
+CompliantSea <- read.csv("CompliantSea.csv", header=TRUE, sep=";", dec=",")
+str(CompliantSea)
+
+########## Descriptive analysis
+#Q1: the number of sea compliant declaration by month
+#Q2: number of sea compliant declaration by CPC
+#Q2: number of sea compliant declaration by Frontier
+#Q2: number of sea compliant declaration by Agent by month (only top 10)
+#Q: Top 20 goods and its description (decalration) use the code 
+# number of declartion by Country origin and by Month 
+# Top 20 by importer (declaration) and we can look in the same time the orign of the goods
+#number of declaration by place of discharge compliant and no complaint
+
+#dimension of the table
+dim(CompliantSea)
+
+#names of variables of the table
+names(CompliantSea)
+
+#6 first line of the table
+test <- head(CompliantSea,20)
+   
+CompliantSea$test <- 1
+
+# Number of items by declaration
+Nb_Item_by_Dec <-aggregate(data.frame(Nb_items = CompliantSea$test,
+                                      Total_GWEIGHT = CompliantSea$GROSSWEIGHT,
+                                      Total_NWEIGHT = CompliantSea$NETWEIGHT,
+                                      Total_QUANTITY = CompliantSea$QUANTITY,
+                                      Total_CUSTOMSVALUE = CompliantSea$CUSTOMSVALUE),
+                                      by = list(ENTRYNO =CompliantSea$ENTRYNO), sum)`
+`
+
+  
+CompliantSea <- CompliantSea[order(CompliantSea$ENTRYNO),]
+CompliantSea1 <- CompliantSea[!duplicated(CompliantSea$ENTRYNO,
+                                         incomparables = FALSE, 
+                                         MARGIN = 1, fromLast = FALSE),]
+          
+CompliantSea1$HS <- substr(as.character(CompliantSea1$HSCODE),1,3)
+CompliantSea1$HS <-  ifelse(substr(CompliantSea1$HS,2,2)==".",
+                                  paste(substr(CompliantSea1$HS,1,1),substr(CompliantSea1$HS,3,3)),
+                                        substr(CompliantSea1$HS,1,2))
+
+CompliantSea1$HS <- str_replace_all(CompliantSea1$HS, fixed(" "), "") 
+
+CompliantSea1$F147NO <- NULL
+CompliantSea1$F147AMOUNT <- NULL
+CompliantSea1$F147AMOUNTPAID <- NULL
+CompliantSea1$ITEMNO <- NULL
+        
+#Merge tables
+CompliantSea2 <- merge(CompliantSea1 ,Nb_Item_by_Dec, by.x = c("ENTRYNO"), 
+                                   by.y = c("ENTRYNO"), all.x = TRUE)
+names(CompliantSea2)
+                 
+CompliantSea3 <- CompliantSea2[c(1,3,4,28,29,30,31,32,33)]
+                
+CompliantSea3$REGISTRATIONDATE <- as.Date(strptime(CompliantSea3$REGISTRATIONDATE,"%d/%m/%Y %H:%M"))
+CompliantSea3$DATEPASSED <- as.Date(strptime(CompliantSea3$DATEPASSED, "%d/%m/%Y %H:%M"))
+CompliantSea3$DurationRegToPas <- difftime(CompliantSea3$DATEPASSED,        
+                                           CompliantSea3$REGISTRATIONDATE, units = c("days")) 
+                                           
+CompliantSea3$MonthRegistration <- month(CompliantSea3$REGISTRATIONDATE)
+CompliantSea3$DayRegistration <- as.numeric(format(CompliantSea3$REGISTRATIONDATE, format="%u"))
+CompliantSea3$Cible <- 1
+CompliantSea3$Origine <- "SEA"
+
+#export the compliance table of declaration
+write.table(CompliantSea3, file = "/Users/datascientistenthusiat/Desktop/DATA SCIENCE PROJECT/CompliantSea3.csv",row.names=TRUE, na="",col.names=TRUE, sep=";")
+
+#################################NO COMPLIANT###########################################
+
+NCompliantSea <- read.csv("NCompliantSea.csv", header=TRUE, sep=";", dec=",")
+NCompliantSea$test <- 1
+  
+# Number of items by declaration
+Nb_I_by_D <- aggregate(data.frame(Nb_items = NCompliantSea$test,
+                                Total_GWEIGHT = NCompliantSea$GROSSWEIGHT,
+                                Total_NWEIGHT = NCompliantSea$NETWEIGHT,
+                                Total_QUANTITY = NCompliantSea$QUANTITY,
+                                Total_CUSTOMSVALUE = NCompliantSea$CUSTOMSVALUE),
+                                  by = list(ENTRYNO =NCompliantSea$ENTRYNO), sum)
+
+NCompliantSea<- NCompliantSea[order(NCompliantSea$ENTRYNO),]
+NCompliantSea1<- NCompliantSea[!duplicated(NCompliantSea$ENTRYNO,
+                                           incomparables = FALSE, 
+                                           MARGIN = 1, fromLast = FALSE),]
+              
+NCompliantSea1$F147NO <- NULL
+NCompliantSea1$F147AMOUNT <- NULL
+NCompliantSea1$F147AMOUNTPAID <- NULL
+NCompliantSea1$ITEMNO <- NULL
+
+  
+NCompliantSea1$HS <- substr(as.character(NCompliantSea1$HSCODE),1,3)
+                
+NCompliantSea1$HS <- ifelse(substr(NCompliantSea1$HS,2,2)==".",
+                            paste(substr(NCompliantSea1$HS,1,1),substr(NCompliantSea1$HS,3,3)),
+                            substr(NCompliantSea1$HS,1,2))
+                            
+NCompliantSea1$HS <- str_replace_all(NCompliantSea1$HS, fixed(" "), "") 
+                            
+#Merge tables
+NCompliantSea2 <- merge(NCompliantSea1 ,Nb_I_by_D, by.x = c("ENTRYNO"), 
+                        by.y = c("ENTRYNO"), all.x = TRUE)
+            
+names(NCompliantSea2)
+                                    
+NCompliantSea3 <- NCompliantSea2[c(1,3,4,34,35,36,37,38,39)]
+                                          
+NCompliantSea3$REGISTRATIONDATE <- as.Date(strptime(NCompliantSea3$REGISTRATIONDATE, 
+                                            "%d/%m/%Y %H:%M"))
+              
+NCompliantSea3$DATEPASSED <- as.Date(strptime(NCompliantSea3$DATEPASSED, 
+                                              "%d/%m/%Y %H:%M"))
+
+NCompliantSea3$DurationRegToPas <- difftime(NCompliantSea3$DATEPASSED,
+                                            NCompliantSea3$REGISTRATIONDATE, 
+                                            units = c("days"))
+
+NCompliantSea3$MonthRegistration <- month(NCompliantSea3$REGISTRATIONDATE)
+NCompliantSea3$DayRegistration <- as.numeric(format(NCompliantSea3$REGISTRATIONDATE, format="%u"))
+
+NCompliantSea3$Cible <- 0
+NCompliantSea3$Origine <- "SEA"
+                                                
+#export the no compliance table of declaration
+write.table(NCompliantSea3, file = "/Users/datascientistenthusiat/Desktop/DATA SCIENCE PROJECT/NCompliantSea3.csv",row.names=TRUE, na="",col.names=TRUE, sep=";")
+            
+names(NCompliantSea3)
+
+CompliantSea4 <- merge(CompliantSea3 ,NCompliantSea3, 
+                        by.x = c(1:14), by.y = c(1:14), 
+                        all.x = TRUE, all.y = TRUE)
+  
+################################Table for model#######################
+#export the table of work, we will start the first declaration model with this table
+write.table(CompliantSea4, file = "/Users/datascientistenthusiat/Desktop/DATA SCIENCE PROJECT/BaseModel.csv",row.names=TRUE, na="",col.names=TRUE, sep=";")
+                
+names(CompliantSea4)
+                                            
+isGoodCol <- function(col){
+              #sum(is.na(col)) == 0
+              sum(is.na(col)) == 0 && is.numeric(col)
+                                        }
+                                              
+goodCols <- sapply(CompliantSea4, isGoodCol)
+                                                      
+                                                        
+####### *** Sampling *** #########
+#### **** Training Set **** ####
+CompliantSea5 <- CompliantSea4[,goodCols]
+                                                        
+CompliantSea5$Cible <- as.factor(CompliantSea5$Cible)
+
+set.seed(123)  ## To have same samples on different systems or computers
+d = sort(sample(nrow(CompliantSea5), nrow(CompliantSea5) * 0.80))
+Train_set <- CompliantSea5[d,]
+Test_set <- CompliantSea5[-d,]
+
+#### ******** Logistic Regresssion model ****** ####### 
+
+LModel <- glm(formula = Cible ~., family = binomial, 
+              data = Train_set)
+## *** Summary of our model *** ##
+summary(LModel)
+
+test.p <- cbind(Test_set, predict(LModel, newdata = Test_set, type = "response", se = TRUE))
+test.p <- cbind(test.p, pred.DECF <- factor(ifelse(test.p$fit > 0.51, 1, 0)))
+Pred_DEC <- test.p$pred.DECF
+DEC_test <- test.p$Cible
+(Decl.confusiontest <- as.matrix(table(DEC_test, Pred_DEC)))
+
+Test_set$Pred.logr <- Pred_DEC
+
+perf <- function(y, ypred) {
+  mc <- table(y, ypred)
+  Acc <- (mc[1, 1] + mc[2, 2])/sum(mc)
+  Precis <- mc[1, 1]/(mc[2,1] + mc[1, 1])
+  TPR <- mc[1, 1]/(mc[1,2] + mc[1, 1])
+  TNR <- mc[2, 2]/(mc[2,2] + mc[2, 1])
+  FOR <- mc[1, 2]/(mc[1,2] + mc[2, 2])
+  #error <- (mc[1, 2] + mc[2, 1])/sum(mc)
+  lperf = c(round(Acc, 2), round(Precis,2), round(TPR,2), round(TNR,2), round(FOR,2) )
+  names(lperf) = c("Accuracy", "Precision", "Sensitivity", "Specificity", "False Omission Rate")
+  # print(paste("Accuracy =", round(Acc, 2),"Precision =", round(Precis, 2), 
+  #             ", Sensivity =", round(TPR, 2), ", Specificity =", round(FPR, 2),
+  #             ", False Omission Rate =", round(FOR, 2)))
+  return(lperf)
+}
+
+perf(test.p$Cible, Test_set$Pred.logr)
+
+CompliantSea4$test <- 1
+#Number of Non Compliant and Compliant 
+Nb_Compl.vs.NCompl <-aggregate(data.frame(Nb_D = CompliantSea4$test), 
+                               by = list(Cible =CompliantSea4$Cible), sum)
+
+##########################################################################
+
+new_dataset <- CompliantSea5[, -c(4,7)]
+
+set.seed(123)  ## To have same samples on different systems or computers
+d = sort(sample(nrow(new_dataset), nrow(new_dataset) * 0.80))
+Train_setn <- new_dataset[d,]
+Test_setn <- new_dataset[-d,]
+
+#### ******** Logistic Regresssion model New ****** ####### 
+
+LModel_new <- glm(formula = Cible ~., family = binomial, 
+                  data = Train_setn)
+## *** Summary of our model *** ##
+summary(LModel_new)
+
+test.p <- cbind(Test_setn, predict(LModel_new, newdata = Test_setn, type = "response", se = TRUE))
+test.p <- cbind(test.p, pred.DECF <- factor(ifelse(test.p$fit > 0.51, 1, 0)))
+Pred_DEC <- test.p$pred.DECF
+DEC_test <- test.p$Cible
+(Decl.confusiontest <- as.matrix(table(DEC_test, Pred_DEC)))
+
+Test_setn$Pred.logr <- Pred_DEC
+
+#### **** Random Forest model **** #######
+library(randomForest)
+RFmodel <- randomForest(Cible ~., data = Train_set, ntree = 150)
+
+
+PreComp_rf <- predict(RFmodel, Test_set)
+
+Test_set$Pred.rf <- PreComp_rf
+##############################################################################
+PreComp_RF <- Test_set$Pred.rf
+Compl_testRF <- Test_set$Cible
+(M_RF_test <- as.matrix(table(Compl_testRF, PreComp_RF)))
+
+perf(Test_set$Cible, Test_set$Pred.rf)
+
+
+############ *** KNN Model *** #################
+
+#library(FNN) ## For KNN Regression
+library(class)
+
+TrainLabels <- Train_setn[, 6]
+TestLabels <- Test_setn[, 6]
+knn.model <- knn(train = Train_setn, k=2, prob = T, test = Test_setn[,c(1:6)], 
+                 cl = TrainLabels)
+
+Test_setn$Pred.knn <- knn.model
+
+##############################################################################
+PreComp_KNN <- Test_setn$Pred.knn
+Compl_testKNN <- Test_setn$Cible
+(M_KNN_test <- as.matrix(table(Compl_testKNN, PreComp_KNN)))
+
+perf(Test_setn$Cible, Test_setn$Pred.knn)
+
+
+#### **** AdaBoost model **** #######
+library(fastAdaboost)
+AdBTmodel <- adaboost(Cible ~., data = Train_setn, nIter = 10)
+
+
+PreComp_AdBT <- predict(AdBTmodel, Test_setn)
+
+Test_setn$Pred.AdBT <- PreComp_AdBT$class
+##############################################################################
+PreComp_AdBoost <- Test_setn$Pred.AdBT
+Compl_testAdBoost <- Test_setn$Cible
+(M_RF_test <- as.matrix(table(Compl_testAdBoost, PreComp_AdBoost)))
+
+perf(Test_setn$Cible, Test_setn$Pred.AdBT)
+
+################################################################################
+## *** Decision tree algorithm *** #############################################
+library(party)
+
+Ctree.model <- ctree(Cible ~ ., Train_setn)
+Test_setn$Pred.ctree <- predict(Ctree.model, newdata = Test_setn[,c(1:5)])
+PredDEC_ctree <- Test_setn$Pred.ctree
+(DEC_DT_test <- as.matrix(table(Test_setn$Cible, PredDEC_ctree)))
+
+perf(Test_setn$Cible, Test_setn$Pred.ctree)
+P                                                    
+                                                                                            

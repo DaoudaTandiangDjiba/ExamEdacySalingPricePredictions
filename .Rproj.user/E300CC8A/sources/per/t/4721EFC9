@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1542187971152.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1116769633",
+    "id" : "4721EFC9",
+    "lastKnownWriteTime" : 1535736828,
+    "last_content_update" : 1535736828,
+    "path" : "~/Desktop/DATASCIENCEPROJECT/TITANIC MACHINE LEARNING FROM DISASTER/TitanicDataAnalysis_Daouda.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "37,0",
+        "scrollLine" : "29"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
